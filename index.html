@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0f1221">
+  <title>Город засыпает…</title>
+  <style>html { background: #0f1221; }</style>
+  <script>
+    // Pages caches files for 10 minutes. version.txt is fetched without cache, and every
+    // asset URL carries that version, so a new deploy shows up on the next open.
+    fetch('version.txt', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.text() : 'dev'))
+      .catch(() => 'dev')
+      .then((version) => {
+        const v = encodeURIComponent(version.trim());
+        const style = document.createElement('link');
+        style.rel = 'stylesheet';
+        style.href = `style.css?v=${v}`;
+        const app = document.createElement('script');
+        app.type = 'module';
+        app.src = `app.js?v=${v}`;
+        document.head.append(style, app);
+      });
+  </script>
+</head>
+<body>
+  <main id="app" class="theme-night"></main>
+</body>
+</html>

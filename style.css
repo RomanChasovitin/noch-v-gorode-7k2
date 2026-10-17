@@ -1,0 +1,1250 @@
+/* The whole game is one case file. Every screen is a page from it: a running
+   head at the top, text set flush left, photos pinned in as prints, red ink
+   for anything the sheriff signs or presses. One typeface, Geologica, and
+   the hierarchy comes from weight: 300 for spoken words, 800 for titles. */
+
+@font-face {
+  font-family: 'Geologica';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(fonts/geologica-cyrillic.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Geologica';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(fonts/geologica-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --font: 'Geologica', sans-serif;
+  --seal: #c8372d;      /* red ink: the sheriff's seal, the one action per page */
+  --lamp: #e9a53b;      /* the desk lamp: amber, used once per page at most */
+  --civil: #7cc48a;     /* green ink: "мирный" */
+  --radius: 6px;
+  --page-x: 22px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font: 400 17px/1.5 var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+
+/* --- Themes --------------------------------------------------------------- */
+
+.theme-night {
+  --bg: #0f1221;
+  --text: #efe7d6;
+  --muted: #9a97a6;
+  --card: #171a2c;
+  --line: #2a2d41;
+  --accent: var(--seal);
+  --accent-text: #fff7ee;
+  --gold: var(--lamp);
+  --rule: #3a3d55;
+}
+
+.theme-dawn {
+  --bg: linear-gradient(180deg, #14132a 0%, #3f2b4a 48%, #a35a3a 100%);
+  --text: #f6ebdc;
+  --muted: #d9c0ad;
+  --card: rgba(16, 12, 28, 0.55);
+  --line: rgba(246, 235, 220, 0.25);
+  --accent: var(--lamp);
+  --accent-text: #2a1708;
+  --gold: var(--lamp);
+  --rule: rgba(246, 235, 220, 0.35);
+}
+
+.theme-day {
+  --bg: #e8ecf1;
+  --text: #141a2a;
+  --muted: #5f6676;
+  --card: #f6f8fb;
+  --line: #c9d0db;
+  --accent: var(--seal);
+  --accent-text: #fff7ee;
+  --gold: #b87a1c;
+  --rule: #9aa3b2;
+}
+
+.theme-letter {
+  --bg: #f7f1e6;
+  --text: #352a2f;
+  --muted: #8a7a80;
+  --card: #fffdf8;
+  --line: #e2d4c8;
+  --accent: #b8485f;
+  --accent-text: #fff8f3;
+  --gold: #b8485f;
+  --rule: #d6c3c8;
+}
+
+/* --- Page ----------------------------------------------------------------- */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 480px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding:
+    calc(env(safe-area-inset-top) + 44px)
+    calc(env(safe-area-inset-right) + var(--page-x))
+    calc(env(safe-area-inset-bottom) + 22px)
+    calc(env(safe-area-inset-left) + var(--page-x));
+  animation: appear 0.4s ease both;
+}
+
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.grow {
+  flex: 1;
+  justify-content: center;
+}
+
+h1, h2 {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+h1 { font-size: 38px; }
+h2 { font-size: 24px; letter-spacing: -0.015em; line-height: 1.15; }
+p { margin: 0; }
+
+/* Running head: the page's place in the file, with a rule under it. */
+.eyebrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--rule);
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.eyebrow span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.center .eyebrow {
+  justify-content: center;
+  border: 0;
+  padding: 0;
+}
+
+.muted { color: var(--muted); }
+.small-print { font-size: 13px; }
+
+.label {
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- Buttons and inputs --------------------------------------------------- */
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.screen > button,
+.oath button,
+.slide button,
+.dialog button:not(.link) {
+  min-height: 56px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.screen > button { margin-top: auto; }
+
+.screen > button:active,
+.oath button:active,
+.slide button:active { transform: translateY(1px); filter: brightness(0.92); }
+
+button:disabled { cursor: default; }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.link {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.screen > .link {
+  margin-top: 0;
+  background: none;
+  color: var(--muted);
+}
+
+/* The oath is signed on a line, not typed into a box. */
+input {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 2px solid var(--text);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  caret-color: var(--lamp);
+  font: inherit;
+  font-size: 22px; /* 16px or more: iOS does not zoom into the field. */
+  font-weight: 500;
+}
+
+input:focus { outline: 0; border-bottom-color: var(--lamp); }
+
+.oath {
+  gap: 12px;
+  margin-top: 8px;
+  padding: 22px 20px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.oath label { font-weight: 500; line-height: 1.35; }
+.oath button { margin-top: 10px; }
+
+.error {
+  min-height: 1.4em;
+  color: #ffc9b8;
+  font-size: 15px;
+}
+
+.hint {
+  padding: 12px 14px;
+  border-left: 3px solid var(--lamp);
+  font-size: 15px;
+}
+
+/* --- Lock and role -------------------------------------------------------- */
+
+.moon, .sun { font-size: 48px; line-height: 1; }
+.moon { animation: float 5s ease-in-out infinite; }
+
+@keyframes float {
+  50% { transform: translateY(-5px); }
+}
+
+.countdown {
+  margin-top: 16px;
+  font-size: 56px;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* The role is an ID card: a double-ruled rectangle, portrait, title. */
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 232px;
+  margin-top: 8px;
+  padding: 38px 16px 24px;
+  border: 1.5px solid var(--gold);
+  border-radius: var(--radius);
+  outline: 1px solid var(--gold);
+  outline-offset: 4px;
+  animation: flip 0.8s ease both;
+}
+
+@keyframes flip {
+  from { transform: perspective(600px) rotateY(90deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.role-card h1 {
+  margin-top: 12px;
+  font-size: 44px;
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  text-align: left;
+}
+
+.rules li {
+  padding-left: 16px;
+  border-left: 1.5px solid var(--rule);
+}
+
+/* --- Avatars and photos --------------------------------------------------- */
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--card);
+  font-size: 34px;
+  object-fit: cover;
+}
+
+.avatar.small { width: 48px; height: 48px; font-size: 26px; }
+.avatar.large { width: 128px; height: 128px; font-size: 64px; align-self: center; }
+
+.theme-day .avatar { background: #d8dfe8; }
+
+/* A print from the file: white border, slight tilt, shadow of the paper. */
+.photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.photo.placeholder {
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--line);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* --- Night ---------------------------------------------------------------- */
+
+/* The lineup: faces on the wall, no boxes. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 8px;
+  margin-top: 6px;
+}
+
+.suspect {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+
+.suspect .avatar { width: 88px; height: 88px; font-size: 44px; }
+.suspect:active:not(:disabled) .avatar { transform: scale(0.95); }
+.suspect.checked .avatar { filter: grayscale(1); opacity: 0.4; }
+.suspect.checked .nick { color: var(--muted); }
+
+.suspect.secret .avatar,
+.vote.secret .avatar {
+  border: 1px dashed var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--gold);
+  font-weight: 800;
+}
+.suspect.secret .nick,
+.vote.secret .vote-name b { color: var(--muted); }
+
+.nick {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+/* The record of one check: centred like a form, quote set light. */
+.reveal {
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.reveal h2 { margin-top: 10px; font-size: 28px; }
+.reveal .muted { font-size: 15px; }
+
+.quote {
+  margin-top: 14px;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1.3;
+}
+
+.stamp {
+  margin-top: 18px;
+  padding: 6px 14px;
+  border: 2.5px solid currentColor;
+  border-radius: 4px;
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+  color: var(--civil);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  transform: rotate(-5deg);
+  animation: stamp 0.4s 0.3s ease both;
+}
+
+@keyframes stamp {
+  from { opacity: 0; transform: scale(1.8) rotate(-5deg); }
+  to { opacity: 1; transform: scale(1) rotate(-5deg); }
+}
+
+.stamp.small {
+  position: absolute;
+  top: 62px;
+  left: 50%;
+  margin: 0;
+  padding: 1px 6px;
+  font-size: 10px;
+  transform: translateX(-50%) rotate(-8deg);
+  animation: none;
+}
+
+.clue { gap: 14px; }
+
+.clue .photo {
+  box-shadow: 0 0 0 6px #f4efe4, 0 10px 24px rgba(0, 0, 0, 0.45);
+  transform: rotate(-1.5deg);
+  margin: 6px 6px 18px;
+  width: calc(100% - 12px);
+}
+
+.clue h2 { margin-top: 4px; }
+
+/* --- Day ------------------------------------------------------------------ */
+
+/* The ballot: one line per name, a box to mark. */
+.vote-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1.5px solid var(--rule);
+}
+
+.vote {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  text-align: left;
+}
+
+.vote:active:not(:disabled) { background: var(--card); }
+.vote.out { color: var(--muted); }
+.vote.out .avatar { filter: grayscale(1); opacity: 0.5; }
+.vote.out .vote-name b { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+.vote-name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.vote-name b { font-weight: 700; }
+.vote-name small { color: var(--muted); font-size: 14px; }
+
+.box {
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border: 1.5px solid var(--text);
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.vote.out .box {
+  border-color: transparent;
+  color: var(--accent);
+  width: auto;
+  height: auto;
+}
+
+.vote.out .box::after {
+  content: 'алиби';
+  display: inline-block;
+  padding: 1px 6px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+.theme-day .stamp { color: var(--accent); }
+
+/* --- Letter --------------------------------------------------------------- */
+
+/* Ruled notepaper: the baby's letter, written by hand (well, by dad). */
+.theme-letter .screen > h1 { font-size: 34px; }
+
+.slides {
+  display: flex;
+  gap: 16px;
+  margin: 0 calc(-1 * var(--page-x));
+  padding: 0 var(--page-x);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--page-x);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.slides::-webkit-scrollbar { display: none; }
+
+.slide {
+  display: flex;
+  flex: 0 0 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 29px, #e9dcd2 29px 30px),
+    var(--card);
+  background-origin: content-box;
+  box-shadow: 0 6px 18px rgba(80, 50, 60, 0.12);
+  scroll-snap-align: start;
+}
+
+.slide .photo {
+  box-shadow: 0 0 0 5px #fff, 0 6px 14px rgba(80, 50, 60, 0.25);
+  margin: 5px 5px 12px;
+  width: calc(100% - 10px);
+}
+
+.slide > p:not(.label) {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 30px;
+}
+
+.slide .label { line-height: 30px; }
+.slide button { margin-top: auto; }
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dot.active { background: var(--accent); transform: scale(1.4); }
+
+.swipe-hint {
+  font-size: 14px;
+  text-align: center;
+}
+
+/* --- Coupons -------------------------------------------------------------- */
+
+/* Tear-off tickets: a stub on the left along a perforation. */
+.coupons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coupon {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 4px 16px;
+  padding: 16px 18px 16px 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--card);
+  color: var(--text);
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(80, 50, 60, 0.08);
+}
+
+.coupon::before,
+.coupon::after { content: none; }
+
+.coupon > * { grid-column: 2; }
+
+.stub {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  display: grid;
+  place-items: center;
+  border-right: 2px dashed var(--line);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.coupon h2 { font-size: 22px; }
+.coupon p { font-size: 15px; line-height: 1.4; }
+.coupon:active:not(:disabled) { transform: translateY(1px); }
+.coupon.used { opacity: 0.55; }
+.coupon.used .stub { border-right-style: solid; color: var(--muted); }
+
+.coupon .stamp {
+  justify-self: start;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.badge {
+  justify-self: start;
+  margin-bottom: 2px;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* --- Dialog and dev tools -------------------------------------------------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 8, 18, 0.6);
+  animation: appear 0.2s ease both;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 400px;
+  gap: 12px;
+  padding: 24px 20px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-align: center;
+}
+
+.dialog h2 { margin-top: 4px; }
+.dialog button:not(.link) { margin-top: 10px; }
+
+.dev-reset {
+  position: fixed;
+  right: 8px;
+  bottom: calc(env(safe-area-inset-bottom) + 8px);
+  padding: 4px 10px;
+  border: 1px dashed #888;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+}
+
+.dev-skip { right: auto; left: 8px; }
+
+/* Sound toggle: a small ink label in the corner of every page. It lives outside #app,
+   so it takes no theme colour: white ink in difference mode reads on every page. */
+.sound-toggle {
+  position: fixed;
+  z-index: 5;
+  top: calc(env(safe-area-inset-top) + 10px);
+  right: calc(env(safe-area-inset-right) + 10px);
+  padding: 3px 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0.7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.sound-toggle.off { text-decoration: line-through; opacity: 0.5; }
+
+/* --- Sheriff uniform ------------------------------------------------------ */
+
+.sheriff {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 26px auto 4px;
+}
+
+.sheriff .avatar.portrait {
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--gold);
+  font-size: 64px;
+}
+
+.sheriff.small {
+  width: 64px;
+  height: 64px;
+  margin: 14px 0 0;
+  flex: 0 0 auto;
+}
+
+.sheriff.small .avatar.portrait { border-width: 2px; font-size: 34px; }
+
+.piece {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  animation: stamp 0.45s ease both;
+}
+
+.piece.hat {
+  top: -34%;
+  left: 5%;
+  width: 90%;
+  transform: rotate(-6deg);
+  animation-name: drop-hat;
+}
+
+.piece.hat svg { width: 100%; height: auto; }
+
+@keyframes drop-hat {
+  from { opacity: 0; transform: translateY(-30px) rotate(-6deg); }
+  to { opacity: 1; transform: rotate(-6deg); }
+}
+
+.piece.star-badge {
+  right: -4%;
+  bottom: -2%;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9a6, #e9b949 60%, #b07d1a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  color: #7a4f00;
+}
+
+.sheriff .star-badge { font-size: 26px; }
+.sheriff.small .star-badge { font-size: 13px; }
+
+.piece.magnifier {
+  left: -6%;
+  bottom: -2%;
+  width: 34%;
+  height: 34%;
+  font-size: 30px;
+  transform: rotate(-15deg);
+}
+
+.sheriff.small .magnifier { font-size: 16px; }
+
+.day-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.day-head .eyebrow { border: 0; padding: 0; margin-bottom: 2px; }
+
+.award {
+  align-items: center;
+}
+
+.award .sheriff { margin-top: 34px; }
+
+/* --- Puzzle --------------------------------------------------------------- */
+
+/* The darkroom: the print develops as the sheriff works. */
+.develop {
+  --developed: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #000;
+}
+
+.develop .photo {
+  display: block;
+  aspect-ratio: 16 / 9;
+  filter:
+    blur(calc((1 - var(--developed)) * 14px))
+    grayscale(calc(1 - var(--developed)))
+    brightness(calc(0.45 + var(--developed) * 0.55));
+  transform: scale(1.06);
+  transition: filter 0.5s ease;
+}
+
+.puzzle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.goals {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 6px;
+  border-bottom: 2px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.goal.done { border-color: var(--civil); color: var(--civil); }
+
+.goal-tile {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 22px;
+}
+
+.goal-tile img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--card);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: calc(100% / 7);
+  height: calc(100% / 7);
+  padding: 3px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.tile > span,
+.tile > img {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: min(8vw, 34px);
+  line-height: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tile > img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tile.selected > * { box-shadow: 0 0 0 3px var(--gold); transform: scale(1.06); }
+.tile.pop > * { opacity: 0; transform: scale(0.2); }
+.tile.hint > * { animation: wiggle 0.6s ease-in-out infinite; }
+
+@keyframes wiggle {
+  25% { transform: rotate(-10deg) scale(1.08); }
+  75% { transform: rotate(10deg) scale(1.08); }
+}
+
+.board.shuffling .tile > * { opacity: 0; transform: scale(0.6); }
+.board.solved { box-shadow: 0 0 0 2px var(--civil); }
+
+.puzzle-help {
+  font-size: 14px;
+  text-align: center;
+}
+
+/* --- Motion ---------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Album: the case file's photo evidence -------------------------------- */
+
+.found { margin-top: 6px; color: var(--muted); font-size: 15px; }
+
+.found-strip {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.found-strip img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px #f4efe4, 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.found-strip img:nth-child(odd) { transform: rotate(-4deg); }
+.found-strip img:nth-child(even) { transform: rotate(3deg); }
+
+/* The mafia's phone: a plain gallery grid, newest unseen first. */
+.phone-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin: 4px -4px 8px;
+}
+
+.phone-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #1b1f33;
+  overflow: hidden;
+}
+
+.phone-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Unseen: a lamp-coloured dot, like an unread mark. */
+.phone-tile.new::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+}
+
+.phone-tile.seen img { opacity: 0.45; filter: grayscale(0.6); }
+
+.seen-mark {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.phone-tile.locked {
+  color: var(--muted);
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+.screen > button:disabled { opacity: 0.5; }
+
+.album-view img {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.album-view p:not(.eyebrow) { font-size: 18px; }
+.develop.hidden { display: none; }
+
+/* --- Memory: «Опознание», case-file cards in a 4×4 grid ------------------ */
+
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 4), 1fr);
+  gap: 8px;
+  width: 100%;
+  perspective: 900px;
+}
+
+.memory-card {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  transform-style: preserve-3d;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.memory-card:disabled { cursor: default; }
+
+.memory-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.3s ease;
+}
+
+.memory-back {
+  border: 1px solid var(--rule);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 11px, rgba(239, 231, 214, 0.06) 11px 12px),
+    var(--card);
+  color: var(--muted);
+  transform: rotateY(0deg);
+}
+
+.memory-back::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed var(--rule);
+  border-radius: 3px;
+}
+
+.memory-no {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.memory-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.memory-front {
+  border: 1px solid var(--gold);
+  background: var(--card);
+  color: var(--text);
+  transform: rotateY(-180deg);
+}
+
+.memory-front img {
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+}
+
+/* Names do not fit a quarter of a phone screen; the faces are enough. */
+.memory-name { display: none; }
+
+.memory-card.open .memory-back { transform: rotateY(180deg); }
+.memory-card.open .memory-front { transform: rotateY(0deg); }
+
+/* The stamp: red ink over a found pair, slightly askew like a real one. */
+.memory-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 1px 6px;
+  border: 2px solid var(--seal);
+  border-radius: 3px;
+  color: var(--seal);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-14deg) scale(1.6);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.memory-card.matched .memory-stamp { opacity: 0.9; transform: translate(-50%, -50%) rotate(-14deg) scale(1); }
+.memory-card.matched .memory-front { border-color: var(--civil); }
+.memory-card.matched img { filter: saturate(0.8); }
+.memory-board.solved { box-shadow: 0 0 0 2px var(--civil); border-radius: var(--radius); }
+
+/* --- Slide: «Восстанови снимок», the clue photo cut into pieces ------------ */
+
+.slide-board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #000;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.slide-piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% / var(--size, 3));
+  height: calc(100% / var(--size, 3));
+  padding: 2px;
+  transition: transform 0.16s ease, padding 0.4s ease;
+  pointer-events: none;
+}
+
+.slide-piece.gap { visibility: hidden; }
+.slide-board.instant .slide-piece { transition: none; }
+
+.slide-cut {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background-size: calc(var(--size, 3) * 100%) calc(var(--size, 3) * 100%);
+  background-repeat: no-repeat;
+  transition: border-radius 0.4s ease;
+}
+
+.slide-board.solved .slide-piece { padding: 0; }
+.slide-board.solved .slide-cut { border-radius: 0; }
+
+/* The whole photo for a peek: fades in over the pieces while the button is held. */
+.slide-whole {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.slide-board.peeking .slide-whole { opacity: 1; }
+
+.slide-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.slide-peek {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.slide-peek:active { border-color: var(--gold); color: var(--gold); }
+
+.slide-help { font-size: 15px; }
+.slide-help.hidden { display: none; }
